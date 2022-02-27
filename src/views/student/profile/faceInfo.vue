@@ -4,8 +4,8 @@
            :width="videoWidth"
            :height="videoHeight"
            autoplay></video>
-    <canvas style="display:none;"
-            id="canvasCamera"
+    <canvas id="canvasCamera"
+            style="display:none;"
             :width="videoWidth"
             :height="videoHeight"></canvas>
     <div v-if="imgSrc"
@@ -23,12 +23,12 @@
         <el-button @click="getCompetence()">打开摄像头</el-button>
       </span>
       <el-button @click="setImage()">拍照</el-button>
-      <el-button @click="uploadImg()">上传人脸信息</el-button>
+      <el-button @click="uploadFaceInfo()">上传人脸信息</el-button>
     </div>
   </div>
 </template>
 <script>
-import { getFaceToken } from '@/api/face/face.js';
+import { saveFaceInfo } from '@/api/face/face.js';
 export default {
   data () {
     return {
@@ -123,48 +123,29 @@ export default {
       console.log(image);
       _this.imgSrc = image;//赋值并预览图片
     },
-    dataURLtoBlob(dataurl) {
-    var arr = dataurl.split(','),
-    mime = arr[0].match(/:(.*?);/)[1],
-    bstr = atob(arr[1]),
-    n = bstr.length,
-    u8arr = new Uint8Array(n);
-    while (n--) {
+    dataURLtoBlob (dataurl) {
+      var arr = dataurl.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]),
+        n = bstr.length,
+        u8arr = new Uint8Array(n);
+      while (n--) {
         u8arr[n] = bstr.charCodeAt(n);
-    }
-    return new Blob([u8arr], {
+      }
+      return new Blob([u8arr], {
         type: mime
-    });
+      });
     },
-    uploadImg () {
-      // getFaceToken({
-      //     api_key: 'kyI1fEFtdNyAMVbJiCCh6s3JwUvBTo19',
-      //     api_secret: 'RebXttV4Lw3tQ4cO8DhHudr8f_Q2kEVb',
-      //     image_base64: this.imgSrc,
-      // })
-      //   .then(function (res) {
-      //     console.log(res);
-      //   })
-      //   .catch((error) => {
-      //     console.log(error);
-      //   });
+    uploadFaceInfo () {
       let face = new FormData()
       face.append('image_file', this.dataURLtoBlob(this.imgSrc))
-      this.$axios({
-        method: 'POST',
-        url: `/facepp/v3/detect`,
-        params: {
-          api_key: 'kyI1fEFtdNyAMVbJiCCh6s3JwUvBTo19',
-          api_secret: 'RebXttV4Lw3tQ4cO8DhHudr8f_Q2kEVb',
-        },
-        data: face,
-        headers: {'Content-Type': 'multipart/form-data'},
-        timeout: 5000
-      })
-      .then(res => {
-        console.log(res);
-      })
-      .catch(err => console.log(err));
+      saveFaceInfo(face)
+        .then(function (res) {
+          console.log(res);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
     // 关闭摄像头
     stopNavigator () {
