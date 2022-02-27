@@ -1,11 +1,10 @@
 import { faceService } from "utils/request";
 
 // 解析facetoken
-export function getFaceToken(data) {
+export function getFaceToken() {
   return faceService({
-    url: '/detect',
+    url: `/facepp/v3/detect`,
     method: 'POST',
-    data
   })
 }
 

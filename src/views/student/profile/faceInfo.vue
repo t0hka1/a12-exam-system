@@ -28,7 +28,7 @@
   </div>
 </template>
 <script>
-import {getFaceToken} from '@/api/face/face.js';
+import { getFaceToken } from '@/api/face/face.js';
 export default {
   data () {
     return {
@@ -39,11 +39,11 @@ export default {
       thisContext: null,
       thisVideo: null,
       openVideo: false,
-      camera: false
+      camera: false,
+      api_key: 'kyI1fEFtdNyAMVbJiCCh6s3JwUvBTo19',
+      api_secret: 'RebXttV4Lw3tQ4cO8DhHudr8f_Q2kEVb',
+      image_url: 'https://ek1ng.com/img/avatar.jpg',
     };
-  },
-  mounted () {
-    //this.getCompetence()//进入页面就调用摄像头
   },
   methods: {
     // 调用权限（打开摄像头功能）
@@ -123,20 +123,48 @@ export default {
       console.log(image);
       _this.imgSrc = image;//赋值并预览图片
     },
+    dataURLtoBlob(dataurl) {
+    var arr = dataurl.split(','),
+    mime = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]),
+    n = bstr.length,
+    u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], {
+        type: mime
+    });
+    },
     uploadImg () {
-      getFaceToken({
-        data: {
+      // getFaceToken({
+      //     api_key: 'kyI1fEFtdNyAMVbJiCCh6s3JwUvBTo19',
+      //     api_secret: 'RebXttV4Lw3tQ4cO8DhHudr8f_Q2kEVb',
+      //     image_base64: this.imgSrc,
+      // })
+      //   .then(function (res) {
+      //     console.log(res);
+      //   })
+      //   .catch((error) => {
+      //     console.log(error);
+      //   });
+      let face = new FormData()
+      face.append('image_file', this.dataURLtoBlob(this.imgSrc))
+      this.$axios({
+        method: 'POST',
+        url: `/facepp/v3/detect`,
+        params: {
           api_key: 'kyI1fEFtdNyAMVbJiCCh6s3JwUvBTo19',
-          api_secret: 'kyI1fEFtdNyAMVbJiCCh6s3JwUvBTo19',
-          image_base64: this.imgSrc,
+          api_secret: 'RebXttV4Lw3tQ4cO8DhHudr8f_Q2kEVb',
         },
+        data: face,
+        headers: {'Content-Type': 'multipart/form-data'},
+        timeout: 5000
       })
-        .then(function (res) {
-          console.log(res);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      .then(res => {
+        console.log(res);
+      })
+      .catch(err => console.log(err));
     },
     // 关闭摄像头
     stopNavigator () {

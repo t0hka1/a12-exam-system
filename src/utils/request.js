@@ -26,25 +26,22 @@ const serviceFour = axios.create({
 })
 
 let faceService = axios.create({
-  baseURL: 'https://api-cn.faceplusplus.com/facepp/v3',
-  header: {
-    'Content-type': 'multipart/form-data'
-  },
+  baseURL: '',
   timeout: 5000
 })
 
-faceService.interceptors.request.use(
-	config => {
-		if (config.method === 'post') {
-			config.data = qs.stringify(config.data)
-		}
-		return config
-	},
-	error => {
-		console.log(error)
-		Promise.reject(error)
-	}
-)
+// faceService.interceptors.request.use(
+// 	config => {
+// 		if (config.method === 'post') {
+// 			config.data = qs.stringify(config.data)
+// 		}
+// 		return config
+// 	},
+// 	error => {
+// 		console.log(error)
+// 		Promise.reject(error)
+// 	}
+// )
 
 setInterceptor(serviceOne)
 setInterceptor(serviceTwo)
