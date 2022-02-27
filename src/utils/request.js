@@ -2,6 +2,7 @@ import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
 import {getToken} from "utils/auth";
+import qs from 'qs'
 
 const serviceOne = axios.create({
   baseURL: 'http://8.136.87.235:8085',
@@ -24,6 +25,27 @@ const serviceFour = axios.create({
   timeout: 5000
 })
 
+let faceService = axios.create({
+  baseURL: 'https://api-cn.faceplusplus.com/facepp/v3',
+  header: {
+    'Content-type': 'multipart/form-data'
+  },
+  timeout: 5000
+})
+
+faceService.interceptors.request.use(
+	config => {
+		if (config.method === 'post') {
+			config.data = qs.stringify(config.data)
+		}
+		return config
+	},
+	error => {
+		console.log(error)
+		Promise.reject(error)
+	}
+)
+
 setInterceptor(serviceOne)
 setInterceptor(serviceTwo)
 setInterceptor(serviceThree)
@@ -34,7 +56,7 @@ function setInterceptor(Obj) {
       config => {
         // 在网络请求发送之前为请求头设置token
         config.headers['token'] = getToken()
-        return config
+        return config 
       },
       error => {
         // do something with request error
@@ -87,4 +109,4 @@ function setInterceptor(Obj) {
   )
 }
 
-export { serviceOne, serviceTwo, serviceThree, serviceFour }
+export { serviceOne, serviceTwo, serviceThree, serviceFour, faceService}
