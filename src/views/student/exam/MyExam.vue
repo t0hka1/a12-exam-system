@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="camera_outer">
-
+    <div v-show="getExam"
+         class="camera_outer">
       <video id="videoCamera"
              :width="videoWidth"
              :height="videoHeight"
@@ -38,7 +38,6 @@
                             :exam-list="examsShow[index]">
         </ExamClassification>
       </el-card>
-
     </div>
   </div>
 </template>
@@ -89,6 +88,7 @@ export default {
       thisVideo: null,
       openVideo: false,
       camera: false,
+      getExam: false,
       isfaceCompared: false,
       time: 0,
       searcherKey: (item) => item.examId,
@@ -169,10 +169,11 @@ export default {
       //每1s拍照一次检验
       let timer = setInterval(() => {
         this.compareFaceInfo(timer, row)
-      }, 1000)
+      }, 5000)
     },
     getCompetence () {
       var _this = this;
+      _this.getExam = true;
       _this.thisCancas = document.getElementById("canvasCamera");
       _this.thisContext = this.thisCancas.getContext("2d");
       _this.thisVideo = document.getElementById("videoCamera");
@@ -219,7 +220,6 @@ export default {
           if ("srcObject" in _this.thisVideo) {
             _this.thisVideo.srcObject = stream;
           } else {
-            // 避免在新的浏览器中使用它，因为它正在被弃用。
             _this.thisVideo.src = window.URL.createObjectURL(stream);
           }
           _this.thisVideo.onloadedmetadata = function (e) {
@@ -231,6 +231,7 @@ export default {
           console.log(err);
         });
     },
+    //与人脸集信息进行比较
     compareFaceInfo (timer, row) {
       var _this = this;
       // canvas画图
@@ -243,23 +244,31 @@ export default {
       );
       // 获取图片base64链接
       var image = this.thisCancas.toDataURL("image/png");
+      this.$notify.info({
+        title: '人脸校验',
+        message: '正在进行人脸校验，请开启相机访问权限并对准相机。'
+      })
+      //轮询对比人脸
       setTimeout(() => {
         let face = new FormData()
         face.append('image_file', this.dataURLtoBlob(image))
-        console.log(this.time++);
+        //请求接口进行比对
         compareFaceInfo(this.$store.getters.userId, face)
           .then((res) => {
-            if (res.data.results[0].confidence > 94)
+            //可信度大于94则进入考试
+            if (res.data.results[0].confidence > 94) {
               _this.isfaceCompared = true;
+              clearInterval(timer)
+              this.thisVideo.srcObject.getTracks()[0].stop();
+              this.camera = false;
+              this.getExam = false;
+            }
             if (this.isfaceCompared) {
               this.$notify({
                 title: '成功',
                 message: '您已通过人脸校验，请等待跳转考试界面',
                 type: 'success'
               })
-              clearInterval(timer)
-              this.thisVideo.srcObject.getTracks()[0].stop();
-              this.camera = false;
               let routeUrl = this.$router.resolve({
                 path: "/exam/do",
                 query: {
@@ -270,13 +279,23 @@ export default {
             } else {
               this.$notify.info({
                 title: '人脸校验',
-                message: '您尚未通过人脸校验，请先验证考生身份'
+                message: '正在进行人脸校验，请开启相机访问权限并将头对准相机。'
               })
             }
           })
           .catch((error) => console.log(error))
-        if (this.time > 5)
+        this.time++;
+        if (this.time > 5) {
           clearInterval(timer)
+          this.thisVideo.srcObject.getTracks()[0].stop();
+          this.camera = false;
+          this.getExam = false;
+          this.$notify.error({
+            title: '人脸校验',
+            message: '您尚未通过人脸校验，请重试，若无法正常使用请重新上传人脸信息'
+          })
+          this.time = 0;
+        }
       }, 0)
     },
     //base64转二进制文件
