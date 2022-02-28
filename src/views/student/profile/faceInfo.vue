@@ -9,8 +9,7 @@
             :width="videoWidth"
             :height="videoHeight"></canvas>
     <el-dialog title="预览照片"
-               :visible.sync="dialogVisible"
-               >
+               :visible.sync="dialogVisible">
       <div v-if="imgSrc"
            class="img_bg_camera">
         <img :src="imgSrc"
@@ -164,9 +163,9 @@ export default {
         })
         .catch((error) => {
           _this.$notify.error({
-              title: '错误',
-              message: '录入人脸信息失败' + error
-            })
+            title: '错误',
+            message: '录入人脸信息失败' + error
+          })
         });
     },
     // 关闭摄像头
@@ -198,8 +197,5 @@ export default {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-}
-
-.vButton {
 }
 </style>

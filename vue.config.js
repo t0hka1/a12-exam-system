@@ -79,7 +79,7 @@ module.exports = {
         '/facepp/v3': {
             target: 'https://api-cn.faceplusplus.com',     // 拦截到'/facepp/v3'的，将axios中baseURL替换成target
             ws: true,                                 // proxy websockets
-            logLevel: 'debug',
+            // logLevel: 'debug',
             changeOrigin: true,                       // 是否跨域
         },
     }
