@@ -1,13 +1,15 @@
 <template>
   <div class="camera_outer">
-    <video id="videoCamera"
-           :width="videoWidth"
-           :height="videoHeight"
-           autoplay></video>
-    <canvas id="canvasCamera"
-            style="display:none;"
-            :width="videoWidth"
-            :height="videoHeight"></canvas>
+    <div v-show="opencamera">
+      <video id="videoCamera"
+             :width="videoWidth"
+             :height="videoHeight"
+             autoplay></video>
+      <canvas id="canvasCamera"
+              style="display:none;"
+              :width="videoWidth"
+              :height="videoHeight"></canvas>
+    </div>
     <el-dialog title="预览照片"
                :visible.sync="dialogVisible">
       <div v-if="imgSrc"
@@ -21,7 +23,7 @@
     <div class="vButton">
       <span v-if="camera">
         <el-button @click="stopNavigator()">关闭摄像头</el-button>
-        <el-button @click="setImage()">拍照</el-button>
+        <el-button @click="setImage()">拍照上传</el-button>
       </span>
       <span v-else>
         <el-button @click="getCompetence()">打开摄像头</el-button>
@@ -42,13 +44,15 @@ export default {
       thisVideo: null,
       openVideo: false,
       camera: false,
-      dialogVisible: false
+      dialogVisible: false,
+      opencamera: false
     };
   },
   methods: {
     // 调用权限（打开摄像头功能）
     getCompetence () {
       var _this = this;
+      _this.opencamera = true;
       _this.thisCancas = document.getElementById("canvasCamera");
       _this.thisContext = this.thisCancas.getContext("2d");
       _this.thisVideo = document.getElementById("videoCamera");
@@ -104,6 +108,10 @@ export default {
           _this.camera = true;
         })
         .catch(err => {
+          _this.$notify.error({
+            title: '错误',
+            message: '相机调用失败' + err
+          })
           console.log(err);
         });
     },
@@ -120,7 +128,6 @@ export default {
       );
       // 获取图片base64链接
       var image = this.thisCancas.toDataURL("image/png");
-      console.log(image);
       _this.imgSrc = image;//赋值并预览图片
       this.dialogVisible = true;
     },
@@ -172,6 +179,7 @@ export default {
     stopNavigator () {
       this.thisVideo.srcObject.getTracks()[0].stop();
       this.camera = false;
+      this.opencamera = false;
     },
     // base64转文件，此处没用到
     dataURLtoFile (dataurl, filename) {
