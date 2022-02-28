@@ -7,8 +7,8 @@ export function detectFaceInfo (data) {
     url: `/facepp/v3/detect`,
     method: 'POST',
     params: {
-      api_key: this.api_key,
-      api_secret: this.api_secret,
+      api_key,
+      api_secret
     },
     data
   })
@@ -20,8 +20,8 @@ export function createFaceSet (outer_id, face_tokens) {
     url: `/facepp/v3/faceset/create`,
     method: 'POST',
     params: {
-      api_key: this.api_key,
-      api_secret: this.api_secret,
+      api_key,
+      api_secret,
       outer_id,
       face_tokens,
       force_merge: 1
@@ -35,8 +35,8 @@ export function compareFaceInfo (outer_id, data) {
     url: `/facepp/v3/search`,
     method: 'POST',
     params: {
-      api_key: this.api_key,
-      api_secret: this.api_secret,
+      api_key,
+      api_secret,
       outer_id,
     },
     data,

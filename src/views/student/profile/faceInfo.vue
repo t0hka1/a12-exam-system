@@ -10,23 +10,9 @@
               :width="videoWidth"
               :height="videoHeight"></canvas>
     </div>
-    <el-dialog title="预览照片"
-               :visible.sync="dialogVisible">
-      <div v-if="imgSrc"
-           class="img_bg_camera">
-        <img :src="imgSrc"
-             alt
-             class="tx_img" />
-      </div>
-      <el-button @click="uploadFaceInfo()">上传人脸信息</el-button>
-    </el-dialog>
     <div class="vButton">
-      <span v-if="camera">
-        <el-button @click="stopNavigator()">关闭摄像头</el-button>
-        <el-button @click="setImage()">拍照上传</el-button>
-      </span>
-      <span v-else>
-        <el-button @click="getCompetence()">打开摄像头</el-button>
+      <span >
+        <el-button @click="upload()">录入人脸信息</el-button>
       </span>
     </div>
   </div>
@@ -43,12 +29,74 @@ export default {
       thisContext: null,
       thisVideo: null,
       openVideo: false,
-      camera: false,
       dialogVisible: false,
-      opencamera: false
+      opencamera: false,
+      time: 0,
+      faceTokenadded: 0,
     };
   },
   methods: {
+    //轮询上传人脸信息
+    upload () {
+      //打开摄像头
+      this.getCompetence();
+      this.$notify.info({
+        title: '消息',
+        message: '人脸信息录入中，请稍候'
+      })
+      //每1s拍照一次
+      let timer = setInterval(() => {
+        this.uploadFaceInfo(timer)
+      }, 1000)
+    },
+    uploadFaceInfo (timer) {
+      let _this = this;
+      // canvas画图
+      _this.thisContext.drawImage(
+        _this.thisVideo,
+        0,
+        0,
+        _this.videoWidth,
+        _this.videoHeight
+      );
+      // 获取图片base64链接
+      var image = this.thisCancas.toDataURL("image/png");
+      //轮询上传人脸信息
+      setTimeout(() => {
+        let face = new FormData()
+        face.append('image_file', _this.dataURLtoBlob(image))
+        //解析faceToken
+        detectFaceInfo(face)
+          .then(function (res) {
+            //将faceToken存入以学号为标识的人脸集
+            createFaceSet(_this.$store.getters.userId, res.data.faces[0].face_token)
+              .then((res) => {
+                console.log(_this.faceTokenadded);
+                if (res.data.face_added == 1) {
+                  _this.faceTokenadded++;
+                }
+                if (_this.faceTokenadded > 3) {
+                  _this.$notify({
+                    title: '成功',
+                    message: '您已成功录入人脸信息',
+                    type: 'success'
+                  })
+                  _this.faceTokenadded = 0;
+                }
+              })
+              .catch((error) => console.log(error))
+          })
+          .catch((error) => console.log(error));
+        this.time++;
+        if (this.time > 5) {
+          clearInterval(timer)
+          this.thisVideo.srcObject.getTracks()[0].stop();
+          this.camera = false;
+          this.opencamera = false;
+          this.time = 0;
+        }
+      }, 0)
+    },
     // 调用权限（打开摄像头功能）
     getCompetence () {
       var _this = this;
@@ -115,22 +163,7 @@ export default {
           console.log(err);
         });
     },
-    //  绘制图片（拍照功能）
-    setImage () {
-      var _this = this;
-      // canvas画图
-      _this.thisContext.drawImage(
-        _this.thisVideo,
-        0,
-        0,
-        _this.videoWidth,
-        _this.videoHeight
-      );
-      // 获取图片base64链接
-      var image = this.thisCancas.toDataURL("image/png");
-      _this.imgSrc = image;//赋值并预览图片
-      this.dialogVisible = true;
-    },
+    //图片base64转2进制
     dataURLtoBlob (dataurl) {
       var arr = dataurl.split(','),
         mime = arr[0].match(/:(.*?);/)[1],
@@ -143,37 +176,6 @@ export default {
       return new Blob([u8arr], {
         type: mime
       });
-    },
-    //上传人脸信息
-    uploadFaceInfo () {
-      this.$notify.info({
-        title: '消息',
-        message: '人脸信息录入中，请稍候'
-      })
-      let face = new FormData()
-      face.append('image_file', this.dataURLtoBlob(this.imgSrc))
-      let _this = this
-      //解析faceToken
-      detectFaceInfo(face)
-        .then(function (res) {
-          //将faceToken存入以学号为标识的人脸集
-          createFaceSet(_this.$store.getters.userId, res.data.faces[0].face_token)
-            .then((res) => _this.$notify({
-              title: '成功',
-              message: '您已成功录入人脸信息',
-              type: 'success'
-            }))
-            .catch((error) => _this.$notify.error({
-              title: '错误',
-              message: '录入人脸信息失败' + error
-            }))
-        })
-        .catch((error) => {
-          _this.$notify.error({
-            title: '错误',
-            message: '录入人脸信息失败' + error
-          })
-        });
     },
     // 关闭摄像头
     stopNavigator () {

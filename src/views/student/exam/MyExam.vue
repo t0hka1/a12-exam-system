@@ -169,7 +169,7 @@ export default {
       //每1s拍照一次检验
       let timer = setInterval(() => {
         this.compareFaceInfo(timer, row)
-      }, 5000)
+      }, 1000)
     },
     getCompetence () {
       var _this = this;
