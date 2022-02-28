@@ -8,41 +8,42 @@
             style="display:none;"
             :width="videoWidth"
             :height="videoHeight"></canvas>
-    <div v-if="imgSrc"
-         class="img_bg_camera">
-      <p>效果预览</p>
-      <img :src="imgSrc"
-           alt
-           class="tx_img" />
-    </div>
-    <div class="button">
+    <el-dialog title="预览照片"
+               :visible.sync="dialogVisible"
+               >
+      <div v-if="imgSrc"
+           class="img_bg_camera">
+        <img :src="imgSrc"
+             alt
+             class="tx_img" />
+      </div>
+      <el-button @click="uploadFaceInfo()">上传人脸信息</el-button>
+    </el-dialog>
+    <div class="vButton">
       <span v-if="camera">
         <el-button @click="stopNavigator()">关闭摄像头</el-button>
+        <el-button @click="setImage()">拍照</el-button>
       </span>
       <span v-else>
         <el-button @click="getCompetence()">打开摄像头</el-button>
       </span>
-      <el-button @click="setImage()">拍照</el-button>
-      <el-button @click="uploadFaceInfo()">上传人脸信息</el-button>
     </div>
   </div>
 </template>
 <script>
-import { saveFaceInfo } from '@/api/face/face.js';
+import { detectFaceInfo, createFaceSet } from '@/api/face/face.js';
 export default {
   data () {
     return {
-      videoWidth: 250,
-      videoHeight: 350,
+      videoWidth: 540,
+      videoHeight: 540,
       imgSrc: "",
       thisCancas: null,
       thisContext: null,
       thisVideo: null,
       openVideo: false,
       camera: false,
-      api_key: 'kyI1fEFtdNyAMVbJiCCh6s3JwUvBTo19',
-      api_secret: 'RebXttV4Lw3tQ4cO8DhHudr8f_Q2kEVb',
-      image_url: 'https://ek1ng.com/img/avatar.jpg',
+      dialogVisible: false
     };
   },
   methods: {
@@ -122,6 +123,7 @@ export default {
       var image = this.thisCancas.toDataURL("image/png");
       console.log(image);
       _this.imgSrc = image;//赋值并预览图片
+      this.dialogVisible = true;
     },
     dataURLtoBlob (dataurl) {
       var arr = dataurl.split(','),
@@ -136,15 +138,35 @@ export default {
         type: mime
       });
     },
+    //上传人脸信息
     uploadFaceInfo () {
+      this.$notify.info({
+        title: '消息',
+        message: '人脸信息录入中，请稍候'
+      })
       let face = new FormData()
       face.append('image_file', this.dataURLtoBlob(this.imgSrc))
-      saveFaceInfo(face)
+      let _this = this
+      //解析faceToken
+      detectFaceInfo(face)
         .then(function (res) {
-          console.log(res);
+          //将faceToken存入以学号为标识的人脸集
+          createFaceSet(_this.$store.getters.userId, res.data.faces[0].face_token)
+            .then((res) => _this.$notify({
+              title: '成功',
+              message: '您已成功录入人脸信息',
+              type: 'success'
+            }))
+            .catch((error) => _this.$notify.error({
+              title: '错误',
+              message: '录入人脸信息失败' + error
+            }))
         })
         .catch((error) => {
-          console.log(error);
+          _this.$notify.error({
+              title: '错误',
+              message: '录入人脸信息失败' + error
+            })
         });
     },
     // 关闭摄像头
@@ -163,7 +185,21 @@ export default {
         u8arr[n] = bstr.charCodeAt(n);
       }
       return new File([u8arr], filename, { type: mime });
-    }
+    },
   }
 };
 </script>
+
+<style>
+.camera_outer {
+  margin: 16 16 16 16;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.vButton {
+}
+</style>
