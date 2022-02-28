@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
+import {getToken} from "utils/auth";
+import qs from 'qs'
 
 const serviceOne = axios.create({
   baseURL: 'http://8.136.87.235:8085',
@@ -10,18 +12,48 @@ const serviceOne = axios.create({
 
 const serviceTwo = axios.create({
   baseURL: 'http://8.136.87.235:8083',
-  // withCredentials: true, // send cookies when cross-domain requests
   timeout: 5000 // request timeout
 })
 
+const serviceThree = axios.create({
+  baseURL: 'http://8.136.87.235:8084',
+  timeout: 5000
+})
+
+const serviceFour = axios.create({
+  baseURL: 'http://8.136.87.235:8082',
+  timeout: 5000
+})
+
+let faceService = axios.create({
+  baseURL: '',
+  timeout: 5000
+})
+
+// faceService.interceptors.request.use(
+// 	config => {
+// 		if (config.method === 'post') {
+// 			config.data = qs.stringify(config.data)
+// 		}
+// 		return config
+// 	},
+// 	error => {
+// 		console.log(error)
+// 		Promise.reject(error)
+// 	}
+// )
+
 setInterceptor(serviceOne)
 setInterceptor(serviceTwo)
+setInterceptor(serviceThree)
+setInterceptor(serviceFour)
 
 function setInterceptor(Obj) {
   Obj.interceptors.request.use(
       config => {
-        config.headers['Content-Type'] = 'application/json'
-        return config
+        // 在网络请求发送之前为请求头设置token
+        config.headers['token'] = getToken()
+        return config 
       },
       error => {
         // do something with request error
@@ -74,4 +106,4 @@ function setInterceptor(Obj) {
   )
 }
 
-export { serviceOne, serviceTwo }
+export { serviceOne, serviceTwo, serviceThree, serviceFour, faceService}

@@ -62,7 +62,6 @@
 export default {
   data() {
     let validateUsername = (rule, value, callback) => {
-      console.log('asd')
       if(this.loginForm.username === "")
         return false;
       let newUname = this.loginForm.username.replace(/\s/g, "")

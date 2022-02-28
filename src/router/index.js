@@ -172,6 +172,15 @@ export const studentRoutes = [
           icon: 'profile',
           breadcrumb: false
         },
+      },
+      {
+        path: '/profile/faceInfo',
+        component: () => import('@/views/student/profile/faceInfo'),
+        meta: {
+          title: '人脸信息',
+          icon: 'profile',
+          breadcrumb: false
+        },
       }
     ]
   },
@@ -200,21 +209,39 @@ export const teacherRoutes = [
     },
     children: [
       {
-        path: '/exam/exam-edit',
-        component: () => import('@/views/teacher/examEdit'),
-        name: '考试编录及发布',
-        meta: {
-          title: '考试编录及发布',
-          icon: 'kaoshi_2'
-        }
-      },
-      {
         path: '/exam/exam-spot',
         component: () => import('@/views/teacher/examSpot'),
         name: '考试现场',
         meta: {
           title: '考试现场',
           icon: 'shujukanban'
+        }
+      },
+      {
+        path: '/exam/exam-edit',
+        component: () => import('@/views/teacher/examEdit'),
+        name: '试卷创编及发布',
+        meta: {
+          title: '试卷创编及发布',
+          icon: 'kaoshi_2'
+        }
+      },
+      {
+        path: 'exam/question-edit',
+        component: () => import('@/views/teacher/questionEdit'),
+        name: '试题创编',
+        meta: {
+          title: '试题创编',
+          icon: 'shitichuangbian'
+        }
+      },
+      {
+        path: 'exam/grading-paper',
+        component: () => import('@/views/teacher/gradingPaper'),
+        name: '试卷批阅',
+        meta: {
+          title: '试卷批阅',
+          icon: 'piyue'
         }
       },
       {
